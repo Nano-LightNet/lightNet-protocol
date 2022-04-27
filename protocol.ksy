@@ -1,6 +1,6 @@
 meta:
-  id: Nano Light Net
-  title: Nano Network Protocol
+  id: lightnano
+  title: Nano Light Network Protocol
   endian: le
 seq:
   - id: body
