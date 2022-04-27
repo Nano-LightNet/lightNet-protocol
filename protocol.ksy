@@ -12,7 +12,7 @@ seq:
       switch-on: header.message_type
       cases:
         'enum_msgtype::node_id_req': msg_node_id_req
-        'enum_msgtype::node_id_ack': node_id_ack
+        'enum_msgtype::node_id_ack': msg_node_id_ack
 enums:
   # The protocol version covered by this specification
   protocol_version:
@@ -71,7 +71,7 @@ types:
         if: _root.header.cookie_flag != 0
         size: 30
         doc: Per-endpoint random number
-  node_id_ack:
+  msg_node_id_ack:
     doc: A Node ID Response which is sent when node has recieved NodeID and Cookie from other end.
     seq:
       - id: entry
