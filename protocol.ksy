@@ -22,6 +22,21 @@ enums:
 types:
     instances:
       item_count_int:
-        value: (extensions & 0x1f)
+        value: (extensions & 0x001f)
         doc: |
           For node_id_ack, this is the number of representatives which the node represents.
+        cookie_flag:
+          value: (extensions & 0x0001)
+          doc: |
+            If set, this is a node_id_req which contains a cookie.
+
+msg_node_id_req:
+    doc: A Node ID Request is a method to transmit NodeID of the current node, and a cookie if one wasn't sent before upgrade.
+    seq:
+      - id: nodeid
+        size: 32
+        doc: Account (node id)        
+      - id: cookie
+        if: _root.header.cookie_flag != 0
+        size: 30
+        doc: Per-endpoint random number
