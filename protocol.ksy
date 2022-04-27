@@ -3,6 +3,9 @@ meta:
   title: Nano Light Network Protocol
   endian: le
 seq:
+  - id: header
+    doc: Message header with message type, version information and message-specific extension bits.
+    type: message_header
   - id: body
     doc: Message body whose content depends on block type in the header.
     type:
@@ -13,13 +16,44 @@ seq:
 enums:
   # The protocol version covered by this specification
   protocol_version:
+    18: value
+  lnet_version:
     1: value
   enum_msgtype:
     0x00: invalid
     0x01: node_id_req
     0x02: node_id_ack
+  enum_network:
+    0x41: network_test
+    0x42: network_beta
+    0x43: network_live
 
 types:
+  message_header:
+    seq:
+      - id: magic
+        contents: R
+        doc: Protocol identifier. Always 'R'.
+      - id: network_id
+        type: u1
+        enum: enum_network
+        doc: Network ID 'A', 'B' or 'C' for test, beta or live network respectively.
+      - id: version_max
+        type: u1
+        doc: Maximum version supported by the sending node
+      - id: version_using
+        type: u1
+        doc: Version used by the sending node
+      - id: version_min
+        type: u1
+        doc: Minimum version supported by the sending node
+      - id: message_type
+        type: u1
+        enum: enum_msgtype
+        doc: Message type
+      - id: extensions
+        type: u2le
+        doc: Extensions bitfield
   instances:
     rep_count_int:
       value: (extensions & 0x001f)
