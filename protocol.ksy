@@ -21,14 +21,14 @@ enums:
 
 types:
   instances:
-    item_count_int:
+    rep_count_int:
       value: (extensions & 0x001f)
       doc: |
       For node_id_ack, this is the number of representatives which the node represents.
-      cookie_flag:
-        value: (extensions & 0x0001)
-        doc: |
-        If set, this is a node_id_req which contains a cookie.
+    cookie_flag:
+      value: (extensions & 0x0001)
+      doc: |
+      If set, this is a node_id_req which contains a cookie.
 
   msg_node_id_req:
     doc: A Node ID Request is a method to transmit NodeID of the current node, and a cookie if one wasn't sent before upgrade.
@@ -40,12 +40,18 @@ types:
         if: _root.header.cookie_flag != 0
         size: 30
         doc: Per-endpoint random number
-        
-  vote_by_hash:
-    doc: A sequence of hashes, where count is read from header.
+  node_id_ack:
+    doc: A Node ID Response which is sent when node has recieved NodeID and Cookie from other end.
     seq:
-      - id: hashes
-        size: 32
+      - id: entry
+        type: representative_entry
         repeat: until
-        repeat-until: _index == _root.header.item_count_int or _io.eof
-        if: not _io.eof
+        repeat-until: _index == _root.header.rep_count_int
+    types:
+      representative_entry:
+        seq:
+          - id: representative
+            size: 32
+            doc: Account
+          - id: signature
+            size: 64
