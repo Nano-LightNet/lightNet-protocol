@@ -8,11 +8,12 @@ seq:
     type: message_header
   - id: body
     doc: Message body whose content depends on block type in the header.
-    type:
-      switch-on: header.message_type
-      cases:
-        'enum_msgtype::node_id_req': msg_node_id_req
-        'enum_msgtype::node_id_ack': msg_node_id_ack
+    type: body(header.message_type)
+  - id: signature
+    size: 32
+    type: packet_signature
+    if: _root.header.message_type != enum_msgtype::node_id_req
+    doc: Packet Signature = Blake2b(header + body, SharedSecret
 enums:
   # The protocol version covered by this specification
   protocol_version:
@@ -29,6 +30,18 @@ enums:
     0x43: network_live
 
 types:
+  body:
+    params:
+      - id: message_type
+        type: u1
+        enum: enum_msgtype
+    seq: 
+    - id: body
+      type:
+        switch-on: message_type
+        cases:
+          'enum_msgtype::node_id_req': msg_node_id_req
+          'enum_msgtype::node_id_ack': msg_node_id_ack
   message_header:
     seq:
       - id: magic
@@ -54,6 +67,9 @@ types:
       - id: extensions
         type: u2le
         doc: Extensions bitfield
+      - id: height
+        type: u8be
+        doc: Message Height (NodeIDReq doesn't use this header)
     instances:
       rep_count_int:
         value: (extensions & 0x001f)
@@ -86,3 +102,18 @@ types:
             doc: Account
           - id: signature
             size: 64
+  packet_signature:
+    seq:
+      - id: hmac
+        type: hmac_input
+        size: 32
+    types:
+      hmac_input:
+        seq:
+          - id: header
+            size: 8
+          - id: body
+            type: body(_root.header.message_type)
+          - id: cookie
+            size: 30
+            doc: Cookie provided in NodeIDHandshake (last 30 bytes) or NodeIDReq
