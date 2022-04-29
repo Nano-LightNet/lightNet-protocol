@@ -11,7 +11,7 @@ seq:
     type: body(header.message_type)
   - id: signature
     size: 32
-    type: packet_signature
+    type: message_signature
     if: _root.header.message_type != enum_msgtype::node_id_req
     doc: Packet Signature = Blake2b(header + body, SharedSecret
 enums:
@@ -24,6 +24,8 @@ enums:
     0x00: invalid
     0x01: node_id_req
     0x02: node_id_ack
+    0x03: height_req
+    0x04: height_ack
   enum_network:
     0x41: network_test
     0x42: network_beta
@@ -42,6 +44,8 @@ types:
         cases:
           'enum_msgtype::node_id_req': msg_node_id_req
           'enum_msgtype::node_id_ack': msg_node_id_ack
+          'enum_msgtype::height_req': msg_height_req
+          'enum_msgtype::height_ack': msg_height_ack
   message_header:
     seq:
       - id: magic
@@ -67,9 +71,6 @@ types:
       - id: extensions
         type: u2le
         doc: Extensions bitfield
-      - id: height
-        type: u8be
-        doc: Message Height (NodeIDReq doesn't use this header)
     instances:
       rep_count_int:
         value: (extensions & 0x001f)
@@ -87,6 +88,13 @@ types:
         if: _root.header.cookie_flag != 0
         size: 30
         doc: Per-endpoint random number
+
+  msg_height_req:
+    doc: Request Message Height from Peer
+
+  msg_height_ack:
+    doc: Response for Message Height Request, Message Height is confirmed through Message Signature
+
   msg_node_id_ack:
     doc: A Node ID Response which is sent when node has recieved NodeID and Cookie from other end.
     seq:
@@ -102,18 +110,26 @@ types:
             doc: Account
           - id: signature
             size: 64
-  packet_signature:
+  message_signature:
     seq:
-      - id: hmac
-        type: hmac_input
-        size: 32
+      - id: key
+        type: hash_key
+      - id: data
+        type: hash_input
     types:
-      hmac_input:
+      hash_key: 
         seq:
-          - id: header
-            size: 8
-          - id: body
-            type: body(_root.header.message_type)
+          - id: shared_secret
+            size: 32
           - id: cookie
             size: 30
             doc: Cookie provided in NodeIDHandshake (last 30 bytes) or NodeIDReq
+      hash_input:
+        seq:
+          - id: header
+            size: 8
+          - id: height
+            type: u8be
+            doc: Message Height
+          - id: body
+            type: body(_root.header.message_type)
