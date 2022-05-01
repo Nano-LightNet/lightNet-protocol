@@ -127,7 +127,7 @@ types:
       hash_input:
         seq:
           - id: header
-            size: 8
+            type: message_header
           - id: height
             type: u8be
             doc: Message Height
