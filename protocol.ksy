@@ -126,8 +126,11 @@ types:
             doc: Cookie provided in NodeIDHandshake (last 30 bytes) or NodeIDReq
       hash_input:
         seq:
-          - id: header
-            type: message_header
+          - id: message_type
+            type: u1
+            enum: enum_msgtype
+          - id: extensions
+            type: u2le
           - id: height
             type: u8be
             doc: Message Height
